@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgDarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="swooshFavicon" x1="0%" y1="30%" x2="100%" y2="70%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Rounded Squircle Icon Container -->
+  <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#bgDarkGrad)" />
+  <rect x="1" y="1" width="98" height="98" rx="21" fill="none" stroke="#334155" stroke-width="1.5" opacity="0.6" />
+
+  <g transform="translate(4, 4) scale(0.92)">
+    <!-- Left Pillar (White/Silver) -->
+    <path d="M 18 42 L 34 26 L 34 76 L 18 76 Z" fill="#E2E8F0" />
+    <path d="M 28 32 L 34 26 L 34 76 L 28 76 Z" fill="#94A3B8" opacity="0.5" />
+
+    <!-- Center Pillar (Tallest) -->
+    <path d="M 40 8 L 56 16 L 56 76 L 40 76 Z" fill="#FFFFFF" />
+    <path d="M 48 12 L 56 16 L 56 76 L 48 76 Z" fill="#CBD5E1" opacity="0.6" />
+
+    <!-- Right Pillar (White/Silver) -->
+    <path d="M 62 26 L 78 40 L 78 76 L 62 76 Z" fill="#E2E8F0" />
+    <path d="M 62 26 L 70 33 L 70 76 L 62 76 Z" fill="#94A3B8" opacity="0.4" />
+
+    <!-- Under-shadow -->
+    <path d="M 14 65 C 28 48, 48 46, 68 54 C 78 58, 86 66, 92 78 L 84 80 C 78 68, 70 60, 58 56 C 42 50, 26 56, 16 68 Z" fill="#047857" opacity="0.8" />
+
+    <!-- Green Dynamic Ribbon -->
+    <path d="M 14 62 C 26 44, 48 40, 68 49 C 80 54, 88 64, 94 76 C 88 77, 80 75, 74 68 C 62 54, 46 47, 30 52 C 22 55, 17 60, 14 62 Z" fill="url(#swooshFavicon)" />
+  </g>
+</svg>
