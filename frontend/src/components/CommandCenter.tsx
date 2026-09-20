@@ -427,7 +427,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
           {situationNarrative.title}
         </h3>
 
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0, maxWidth: '90ch' }}>
           {situationNarrative.details}
         </p>
       </div>
@@ -435,9 +435,9 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       {/* ============================================================
           METRICS SUMMARY RAIL (ACCURATE LABELS & MICRO-EXPLANATIONS)
           ============================================================ */}
-      <div className="surface flex-row" style={{ padding: 0, overflow: 'hidden', borderRadius: 'var(--radius-lg)', flexWrap: 'wrap' }}>
+      <div className="metrics-grid">
         {/* Metric 1: Activities / Scope */}
-        <div style={{ flex: 1, padding: 'var(--space-20)', borderRight: '1px solid var(--border-light)', minWidth: '160px' }}>
+        <div className="metric-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
               WBS SCOPE
@@ -464,7 +464,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
 
         {/* Metric 2: Overall Physical Progress */}
-        <div style={{ flex: 1.3, padding: 'var(--space-20)', borderRight: '1px solid var(--border-light)', background: 'var(--bg-surface-subtle)', minWidth: '180px' }}>
+        <div className="metric-card metric-card-highlight">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
               PHYSICAL PROGRESS
@@ -504,7 +504,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
 
         {/* Metric 3: Delayed Activities */}
-        <div style={{ flex: 1, padding: 'var(--space-20)', borderRight: '1px solid var(--border-light)', minWidth: '160px' }}>
+        <div className="metric-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-danger)', letterSpacing: '0.05em' }}>
               DELAYED PACKAGES
@@ -531,7 +531,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
 
         {/* Metric 4: Downstream At Risk Successors */}
-        <div style={{ flex: 1, padding: 'var(--space-20)', minWidth: '160px' }}>
+        <div className="metric-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-warning-text)', letterSpacing: '0.05em' }}>
               EXPOSED SUCCESSORS
@@ -561,9 +561,9 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       {/* ============================================================
           LEVEL 3: WHAT NEEDS ATTENTION? & WHAT CAN YOU DO?
           ============================================================ */}
-      <div className="flex-row gap-24" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div className="dashboard-split-grid-attention">
         {/* Left: What Needs Attention Operational Action Feed */}
-        <div className="flex-col gap-12" style={{ flex: 1.4, minWidth: '320px' }}>
+        <div className="flex-col gap-12" style={{ minWidth: 0, width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertTriangle size={16} color="var(--color-warning-text)" /> What Needs Attention
@@ -758,7 +758,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
 
         {/* Right: What Can You Do? Action Shortcuts */}
-        <div className="flex-col gap-12" style={{ flex: 1, minWidth: '280px' }}>
+        <div className="flex-col gap-12" style={{ minWidth: 0, width: '100%' }}>
           <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Zap size={16} color="var(--color-primary)" /> What Can You Do?
           </h3>
@@ -861,9 +861,9 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       {/* ============================================================
           LEVEL 4 & 5: WHY IS IT HAPPENING? (SCHEDULE POSITION & CAUSALITY)
           ============================================================ */}
-      <div className="flex-row gap-24" style={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div className="dashboard-split-grid">
         {/* Left Column: Dual-Track Schedule Position */}
-        <div className="flex-col gap-24" style={{ flex: 1.3, minWidth: '320px' }}>
+        <div className="flex-col gap-24" style={{ minWidth: 0, width: '100%' }}>
           <div className="surface" style={{ padding: 'var(--space-24)', borderRadius: 'var(--radius-lg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-20)' }}>
               <div>
@@ -1062,7 +1062,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </div>
 
         {/* Right Column: Causal Dependency Impact Trace */}
-        <div className="surface flex-col" style={{ flex: 1, padding: 'var(--space-24)', borderRadius: 'var(--radius-lg)', minWidth: '320px' }}>
+        <div className="surface flex-col" style={{ padding: 'var(--space-24)', borderRadius: 'var(--radius-lg)', minWidth: 0, width: '100%' }}>
           <div style={{ marginBottom: 'var(--space-16)' }}>
             <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <GitFork size={16} color="var(--color-primary)" /> Causal Dependency Trace

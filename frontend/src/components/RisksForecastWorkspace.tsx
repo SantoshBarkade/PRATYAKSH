@@ -161,7 +161,7 @@ export const RisksForecastWorkspace: React.FC<RisksForecastWorkspaceProps> = ({
   }, [primaryForecast, primaryForecastAct]);
 
   return (
-    <div className="page-container flex-col" style={{ gap: 'var(--space-24)', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+    <div className="page-container flex-col" style={{ gap: 'var(--space-24)' }}>
       {/* 1. Header */}
       <div className="flex-col">
         <div className="page-eyebrow">Project Intelligence</div>

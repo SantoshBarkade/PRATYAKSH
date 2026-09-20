@@ -67,8 +67,8 @@ export const ScheduleWorkspace: React.FC<ScheduleWorkspaceProps> = ({
 
   return (
     <div className="flex-col" style={{ flex: 1, height: '100%', width: '100%' }}>
-      <div className="page-container" style={{ paddingBottom: 0, paddingRight: '0', display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div className="flex-row justify-between items-center" style={{ marginBottom: 'var(--space-24)', paddingRight: 'var(--space-40)' }}>
+      <div className="page-container" style={{ paddingBottom: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className="flex-row justify-between items-center" style={{ marginBottom: 'var(--space-24)' }}>
           <div className="flex-col">
             <div className="page-eyebrow">Project Controls</div>
             <h1 className="page-title">Schedule & Activities</h1>

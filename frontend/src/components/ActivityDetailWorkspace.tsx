@@ -78,7 +78,7 @@ export const ActivityDetailWorkspace: React.FC<ActivityDetailWorkspaceProps> = (
   const risks = detail?.risks || [];
 
   return (
-    <div className="page-container flex-col" style={{ gap: 'var(--space-24)', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+    <div className="page-container flex-col" style={{ gap: 'var(--space-24)' }}>
       {/* 1. Breadcrumb & Back Action Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>

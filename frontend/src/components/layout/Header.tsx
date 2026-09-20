@@ -30,9 +30,10 @@ export const Header: React.FC<HeaderProps> = ({
       className="flex-row items-center justify-between"
       style={{
         height: '64px',
+        width: '100%',
         background: 'var(--bg-surface)',
         borderBottom: '1px solid var(--border-light)',
-        padding: '0 var(--space-24)',
+        padding: '0 clamp(16px, 2.4vw, 40px)',
         flexShrink: 0,
         zIndex: 10,
         gap: 'var(--space-16)',

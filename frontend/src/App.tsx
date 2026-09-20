@@ -133,7 +133,7 @@ function App() {
 
   if (loading && !dashboardData && projects.length === 0) {
     return (
-      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
+      <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center', width: '100%' }}>
         <div className="pulse" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
           <ActivityIcon size={48} color="var(--accent-primary)" />
           <h2>Initializing Command Center...</h2>
