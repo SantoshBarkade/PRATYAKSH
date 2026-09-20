@@ -184,7 +184,7 @@ export const ScheduleWorkspace: React.FC<ScheduleWorkspaceProps> = ({
             )}
           </div>
         ) : (
-          <div className={`schedule-table-container invisible-scrollbar-x ${selectedActivityId ? 'schedule-drawer-active' : ''}`}>
+          <div className={`schedule-table-container ${selectedActivityId ? 'schedule-drawer-active' : ''}`}>
             <ActivitiesWorkspace 
               activities={data.activities} 
               dependencies={data.dependencies}

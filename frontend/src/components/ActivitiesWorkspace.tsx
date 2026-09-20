@@ -75,15 +75,15 @@ export const ActivitiesWorkspace: React.FC<ActivitiesWorkspaceProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ON_TRACK':
-        return <span className="badge badge-success">ON TRACK</span>;
+        return <span className="status-badge status-badge-on-track">ON TRACK</span>;
       case 'DELAYED':
-        return <span className="badge badge-danger">DELAYED</span>;
+        return <span className="status-badge status-badge-delayed">DELAYED</span>;
       case 'COMPLETED':
-        return <span className="badge badge-success">COMPLETED</span>;
+        return <span className="status-badge status-badge-completed">COMPLETED</span>;
       case 'NOT_STARTED':
-        return <span className="badge badge-neutral">NOT STARTED</span>;
+        return <span className="status-badge status-badge-not-started">NOT STARTED</span>;
       default:
-        return <span className="badge badge-neutral">{status.replace('_', ' ')}</span>;
+        return <span className="status-badge status-badge-not-started">{status.replace('_', ' ')}</span>;
     }
   };
 
@@ -101,117 +101,120 @@ export const ActivitiesWorkspace: React.FC<ActivitiesWorkspaceProps> = ({
 
   return (
     <div className="flex-col gap-16" style={{ width: '100%' }}>
-      {/* Search & Compact Filter Bar */}
+      {/* Search & Refined Filter Controls */}
       <div 
+        className="surface"
         style={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap', 
-          gap: '12px',
-          background: 'var(--bg-surface)',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-light)'
+          flexDirection: 'column', 
+          gap: '16px',
+          padding: '16px 20px',
+          borderRadius: 'var(--radius-lg)'
         }}
       >
-        {/* Search */}
-        <div style={{ position: 'relative', width: '260px' }}>
-          <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+        {/* Row 1: Primary Search Discovery Control */}
+        <div style={{ position: 'relative', maxWidth: '380px', width: '100%' }}>
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input 
             type="text" 
             className="input-field" 
             placeholder="Search activity code or name..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '32px', height: '32px', fontSize: '12px' }}
+            style={{ paddingLeft: '34px', height: '34px', fontSize: '13px', width: '100%' }}
+            aria-label="Search activities by code or name"
           />
         </div>
 
-        {/* Filters Group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          {/* Status Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Status:</span>
-            <div style={{ display: 'flex', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', padding: '2px', border: '1px solid var(--border-light)' }}>
-              {['ALL', 'ON_TRACK', 'DELAYED', 'COMPLETED', 'NOT_STARTED'].map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStatusFilter(s)}
-                  style={{
-                    padding: '3px 8px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    background: statusFilter === s ? 'var(--bg-surface)' : 'transparent',
-                    color: statusFilter === s ? 'var(--text-primary)' : 'var(--text-muted)',
-                    border: statusFilter === s ? '1px solid var(--border-light)' : '1px solid transparent',
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    boxShadow: statusFilter === s ? 'var(--shadow-sm)' : 'none'
-                  }}
-                >
-                  {s === 'ALL' ? 'All' : s === 'ON_TRACK' ? 'On Track' : s === 'DELAYED' ? 'Delayed' : s === 'COMPLETED' ? 'Completed' : 'Not Started'}
-                </button>
-              ))}
+        {/* Row 2: Distinct Filter Dimensions */}
+        <div 
+          style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            alignItems: 'flex-start', 
+            gap: '28px', 
+            rowGap: '16px' 
+          }}
+        >
+          {/* Dimension 1: Execution Status */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span 
+              id="status-filter-label"
+              style={{ 
+                fontSize: '11px', 
+                fontWeight: 700, 
+                color: 'var(--text-secondary)', 
+                letterSpacing: '0.06em', 
+                textTransform: 'uppercase' 
+              }}
+            >
+              Status
+            </span>
+            <div 
+              className="filter-segmented-control" 
+              role="group" 
+              aria-labelledby="status-filter-label"
+            >
+              {[
+                { value: 'ALL', label: 'All' },
+                { value: 'ON_TRACK', label: 'On Track' },
+                { value: 'DELAYED', label: 'Delayed' },
+                { value: 'COMPLETED', label: 'Completed' },
+                { value: 'NOT_STARTED', label: 'Not Started' }
+              ].map(opt => {
+                const isActive = statusFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setStatusFilter(opt.value)}
+                    className={`filter-chip ${isActive ? 'active' : ''}`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Risk Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Risk:</span>
-            <div style={{ display: 'flex', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', padding: '2px', border: '1px solid var(--border-light)' }}>
-              <button
-                type="button"
-                onClick={() => setRiskFilter('ALL')}
-                style={{
-                  padding: '3px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  background: riskFilter === 'ALL' ? 'var(--bg-surface)' : 'transparent',
-                  color: riskFilter === 'ALL' ? 'var(--text-primary)' : 'var(--text-muted)',
-                  border: riskFilter === 'ALL' ? '1px solid var(--border-light)' : '1px solid transparent',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  boxShadow: riskFilter === 'ALL' ? 'var(--shadow-sm)' : 'none'
-                }}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => setRiskFilter('AT_RISK')}
-                style={{
-                  padding: '3px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  background: riskFilter === 'AT_RISK' ? 'var(--bg-surface)' : 'transparent',
-                  color: riskFilter === 'AT_RISK' ? 'var(--color-warning-text)' : 'var(--text-muted)',
-                  border: riskFilter === 'AT_RISK' ? '1px solid var(--border-light)' : '1px solid transparent',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  boxShadow: riskFilter === 'AT_RISK' ? 'var(--shadow-sm)' : 'none'
-                }}
-              >
-                At Risk
-              </button>
-              <button
-                type="button"
-                onClick={() => setRiskFilter('NO_RISK')}
-                style={{
-                  padding: '3px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  background: riskFilter === 'NO_RISK' ? 'var(--bg-surface)' : 'transparent',
-                  color: riskFilter === 'NO_RISK' ? 'var(--text-primary)' : 'var(--text-muted)',
-                  border: riskFilter === 'NO_RISK' ? '1px solid var(--border-light)' : '1px solid transparent',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  boxShadow: riskFilter === 'NO_RISK' ? 'var(--shadow-sm)' : 'none'
-                }}
-              >
-                Insulated
-              </button>
+          {/* Dimension 2: Dependency Risk */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span 
+              id="risk-filter-label"
+              style={{ 
+                fontSize: '11px', 
+                fontWeight: 700, 
+                color: 'var(--text-secondary)', 
+                letterSpacing: '0.06em', 
+                textTransform: 'uppercase' 
+              }}
+            >
+              Dependency Risk
+            </span>
+            <div 
+              className="filter-segmented-control" 
+              role="group" 
+              aria-labelledby="risk-filter-label"
+            >
+              {[
+                { value: 'ALL' as const, label: 'All' },
+                { value: 'AT_RISK' as const, label: 'At Risk' },
+                { value: 'NO_RISK' as const, label: 'Insulated' }
+              ].map(opt => {
+                const isActive = riskFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setRiskFilter(opt.value)}
+                    className={`filter-chip ${isActive ? 'active' : ''}`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -219,12 +222,12 @@ export const ActivitiesWorkspace: React.FC<ActivitiesWorkspaceProps> = ({
 
       {/* Canonical 7-Column WBS Table */}
       <div className="surface" style={{ overflow: 'hidden', padding: 0 }}>
-        <div className="invisible-scrollbar-x" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+        <div className="table-scroll-container">
+          <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
             <thead>
               <tr style={{ background: 'var(--bg-surface-subtle)', borderBottom: '1px solid var(--border-light)' }}>
                 <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '90px' }}>CODE</th>
-                <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ACTIVITY</th>
+                <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', minWidth: '200px' }}>ACTIVITY</th>
                 <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '120px' }}>PLANNED</th>
                 <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '120px' }}>ACTUAL</th>
                 <th style={{ padding: '10px 14px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '120px' }}>VARIANCE</th>

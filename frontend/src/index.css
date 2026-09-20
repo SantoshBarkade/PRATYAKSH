@@ -248,6 +248,94 @@ body {
 .badge-neutral { background: var(--status-unknown-bg); color: var(--status-unknown); border: 1px solid var(--border-light); }
 .badge-primary { background: var(--color-primary-soft); color: var(--color-primary); }
 
+/* Restrained Enterprise Status Badges (Schedule & Activities) */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.status-badge-delayed {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+.status-badge-completed {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #A7F3D0;
+}
+
+.status-badge-on-track {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border-color: #BFDBFE;
+}
+
+.status-badge-not-started {
+  background: #F8FAFC;
+  color: #64748B;
+  border-color: #E2E8F0;
+}
+
+/* Filter Segmented Controls & Chips (Schedule & Activities) */
+.filter-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg-surface-subtle);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.filter-chip:hover:not(.active) {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.filter-chip.active {
+  background: var(--bg-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.filter-chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
 .page-container {
   max-width: 1440px;
   margin: 0 auto;
@@ -294,6 +382,52 @@ body {
   background: transparent !important;
 }
 
+/* Schedule & Activities Table Independent Scroll Container */
+.table-scroll-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+/* Chrome, Edge, Safari (WebKit) */
+.table-scroll-container::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+/* Subtly visible when hovered, interacted with, or active */
+.table-scroll-container:hover::-webkit-scrollbar-thumb,
+.table-scroll-container:focus-within::-webkit-scrollbar-thumb,
+.table-scroll-container:active::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.table-scroll-container:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+/* Firefox */
+.table-scroll-container:hover,
+.table-scroll-container:focus-within,
+.table-scroll-container:active {
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
 
 /* APPLICATION SHELL */
 .app-container {
@@ -314,6 +448,7 @@ body {
 .content-area {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -329,6 +464,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
 }
 
 /* Activity Drawer Responsive Behavior */
