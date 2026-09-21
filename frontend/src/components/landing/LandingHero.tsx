@@ -8,7 +8,7 @@ export function LandingHero() {
           {/* Left Column: Editorial & Value Proposition */}
           <div className="hero-content">
             <div className="landing-eyebrow">
-              <span className="landing-eyebrow-badge">SIH 2026 PS26122</span>
+              <span className="landing-eyebrow-badge">SIH 2026 &bull; PS 26122</span>
               <span>Infrastructure Execution Intelligence</span>
             </div>
 

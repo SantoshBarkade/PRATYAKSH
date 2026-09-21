@@ -124,7 +124,7 @@ export const DemoGuideModal: React.FC<DemoGuideModalProps> = ({
                 Explore INFRA LINK
               </h2>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>
-                Try the four real-data scenarios built into the prototype.
+                Explore the four benchmark scenarios built into the prototype.
               </p>
             </div>
           </div>
@@ -305,7 +305,7 @@ export const DemoGuideModal: React.FC<DemoGuideModalProps> = ({
           {/* Section 2: Real Project Test Scenarios */}
           <div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px' }}>
-              Built-In Real-Data Scenarios
+              Built-In Benchmark Scenarios
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {/* Scenario 1: Water Pipeline (Dependency Propagation) */}

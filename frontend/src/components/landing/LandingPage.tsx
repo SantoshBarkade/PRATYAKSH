@@ -542,7 +542,7 @@ export default function LandingPage() {
 
           <div className="footer-bottom">
             <div>
-              Smart India Hackathon 2026 &bull; Problem Statement PS26122 &bull; Ministry of Road Transport and Highways (MoRTH)
+              Smart India Hackathon 2026 &bull; Problem Statement 26122 &bull; Oil India Limited &bull; Smart Automation &bull; Software
             </div>
             <div>
               &copy; {new Date().getFullYear()} INFRA LINK. Infrastructure Execution Intelligence.

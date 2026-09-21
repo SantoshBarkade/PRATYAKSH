@@ -1,7 +1,8 @@
 # INFRA LINK — Frontend Client
 
 > **Connect Plans. Track Progress. Predict Impact.**  
-> Smart India Hackathon 2026 | PS26122
+> Smart India Hackathon 2026 | Problem Statement 26122  
+> **Organization & Department:** Oil India Limited | **Category:** Software | **Theme:** Smart Automation
 
 ---
 

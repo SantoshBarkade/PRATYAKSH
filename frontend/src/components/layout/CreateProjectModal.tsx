@@ -206,7 +206,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
               <input 
                 type="text" 
                 className="input-field"
-                placeholder="e.g. MMRDA" 
+                placeholder="e.g. Oil India Limited" 
                 value={organization}
                 onChange={e => setOrganization(e.target.value)}
                 required
