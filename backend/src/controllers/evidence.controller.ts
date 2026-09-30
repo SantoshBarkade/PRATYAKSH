@@ -48,8 +48,15 @@ export class EvidenceController {
           const result = await reportProcessingService.processReport(projectId, 'PDF', req.file.buffer, null, req.file.originalname, null);
           return res.json({ success: true, result });
         } else if (ext === 'txt') {
-          const result = await reportProcessingService.processReport(projectId, 'TXT', req.file.buffer, null, req.file.originalname, null);
-          return res.json({ success: true, result });
+          const result = await reportProcessingService.processTxtReport(projectId, req.file.buffer, null, req.file.originalname, null);
+          return res.json({
+            success: true,
+            importedRows: result.importedRows,
+            results: result.results,
+            result: result.result,
+            summary: result.summary,
+            warnings: result.warnings
+          });
         } else {
            return res.status(400).json({ success: false, error: 'Unsupported file type' });
         }
@@ -58,8 +65,15 @@ export class EvidenceController {
       // If it's direct text
       const { text, reportDate } = req.body;
       if (text) {
-         const result = await executionEventService.processEvent(projectId, text, reportDate);
-         return res.json({ success: true, result });
+         const result = await reportProcessingService.processTxtReport(projectId, null, text, 'direct_text_entry.txt', reportDate || null);
+         return res.json({
+           success: true,
+           importedRows: result.importedRows,
+           results: result.results,
+           result: result.result,
+           summary: result.summary,
+           event: result.results && result.results[0] ? result.results[0] : null
+         });
       }
 
       return res.status(400).json({ success: false, error: 'No file or text provided' });

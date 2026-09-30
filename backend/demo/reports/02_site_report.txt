@@ -1,0 +1,49 @@
+02 SITE REPORT
+==============
+Project: Urban Flyover Construction — Phase 1
+Organization: PWD
+Report Date: 2026-06-25
+Prepared By: Site Engineering Team
+Source: Field Execution Evidence
+
+ACTIVITY 1
+----------
+Activity Code: F001
+Activity Name: Pile Foundation
+Actual Progress: 95%
+Status: IN_PROGRESS
+Observation: Field execution evidence recorded for the activity.
+
+ACTIVITY 2
+----------
+Activity Code: F002
+Activity Name: Pier Construction
+Actual Progress: 72%
+Status: IN_PROGRESS
+Observation: Field execution evidence recorded for the activity.
+
+ACTIVITY 3
+----------
+Activity Code: F003
+Activity Name: Deck Slab Preparation
+Actual Progress: 35%
+Status: DELAYED
+Observation: Field execution evidence recorded for the activity.
+
+ACTIVITY 4
+----------
+Activity Code: F004
+Activity Name: Approach Road
+Actual Progress: 20%
+Status: DELAYED
+Observation: Field execution evidence recorded for the activity.
+
+ACTIVITY 5
+----------
+Activity Code: F005
+Activity Name: Drainage Works
+Actual Progress: 18%
+Status: DELAYED
+Observation: Field execution evidence recorded for the activity.
+
+END OF REPORT

@@ -87,6 +87,32 @@ export interface ExtractionResult {
   extractionMethod: 'LLM' | 'DETERMINISTIC_FALLBACK';
 }
 
+// ─── Execution Signal (Structured Extraction Contract) ───────────────────────
+
+export interface ExecutionSignal {
+  activityCode: string | null;
+  activityName: string | null;
+  actualProgress: number | null;
+  observationDate: string | null;
+  status: string | null;
+  source: string | null;
+  reason?: string | null;
+  rawText?: string;
+  confidence?: number;
+  extractionMethod?: 'LLM' | 'DETERMINISTIC_FALLBACK';
+}
+
+export interface TxtExtractionResult {
+  signals: ExecutionSignal[];
+  documentMetadata: {
+    project?: string | null;
+    organization?: string | null;
+    reportDate?: string | null;
+    source?: string | null;
+  };
+  rawText: string;
+}
+
 // ─── Risk ─────────────────────────────────────────────────────────────────────
 
 export type RiskType = 'DOWNSTREAM_DELAY' | 'POTENTIAL_DOWNSTREAM_DELAY';

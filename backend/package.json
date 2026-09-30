@@ -10,6 +10,11 @@
     "seed": "ts-node --project tsconfig.scripts.json scripts/seed.ts",
     "seed:prototype": "ts-node --project tsconfig.scripts.json scripts/seed-prototype.ts",
     "seed:reviewer": "ts-node --project tsconfig.scripts.json scripts/seed-reviewer-demo.ts",
+    "demo:reset": "ts-node --project tsconfig.scripts.json scripts/demo-reset.ts",
+    "demo:clean": "ts-node --project tsconfig.scripts.json scripts/demo-clean.ts",
+    "demo:verify": "ts-node --project tsconfig.scripts.json scripts/verify-demo-state.ts",
+    "test:txt": "ts-node --project tsconfig.scripts.json scripts/test-txt-extraction.ts",
+    "test:evidence": "ts-node --project tsconfig.scripts.json scripts/test-evidence-endpoint.ts",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {

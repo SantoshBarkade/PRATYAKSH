@@ -1,8 +1,36 @@
 import { ExtractionProvider } from './extraction.provider';
-import { ExtractionResult, ExtractionStatus } from '../types';
+import { ExtractionResult, ExtractionStatus, ExecutionSignal } from '../types';
+import { extractSignalsFromText } from '../parsers/text.parser';
 
 export class FallbackExtractionProvider implements ExtractionProvider {
+  /**
+   * Extracts all execution signals present in the given text.
+   */
+  async extractSignals(text: string, context?: any): Promise<ExecutionSignal[]> {
+    const parseResult = extractSignalsFromText(text, context?.sourceFileName || null);
+    return parseResult.signals;
+  }
+
+  /**
+   * Backwards-compatible single-signal extraction method.
+   */
   async extract(text: string, context?: any): Promise<ExtractionResult> {
+    const parseResult = extractSignalsFromText(text, context?.sourceFileName || null);
+    
+    if (parseResult.signals.length > 0) {
+      const first = parseResult.signals[0];
+      return {
+        activity: first.activityCode || first.activityName,
+        date: first.observationDate,
+        progress: first.actualProgress,
+        reason: first.reason || null,
+        status: (first.status as ExtractionStatus) || null,
+        extractionConfidence: first.confidence ?? 1.0,
+        extractionMethod: 'DETERMINISTIC_FALLBACK'
+      };
+    }
+
+    // Secondary fallback heuristics for unstructured fragments
     const result: ExtractionResult = {
       activity: null,
       date: null,
@@ -16,11 +44,11 @@ export class FallbackExtractionProvider implements ExtractionProvider {
     let confidence = 0;
 
     // Progress extraction
-    const progressMatch = text.match(/(\d+)\s*(?:%|percent)/i);
+    const progressMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:%|percent)/i);
     if (progressMatch) {
-      const p = parseInt(progressMatch[1], 10);
+      const p = parseFloat(progressMatch[1]);
       if (p >= 0 && p <= 100) {
-        result.progress = p;
+        result.progress = Math.round(p);
         confidence += 0.25;
       }
     } else if (text.match(/\b(?:completed|is complete|was completed)\b/i)) {
@@ -44,24 +72,21 @@ export class FallbackExtractionProvider implements ExtractionProvider {
     }
 
     // Reason extraction
-    const reasonMatch = text.match(/(?:due to|because of|affected by|delayed by|caused by)\s+([^.,]+)/i);
+    const reasonMatch = text.match(/(?:due to|because of|affected by|delayed by|caused by)\s+([^.,\n]+)/i);
     if (reasonMatch) {
       result.reason = reasonMatch[1].trim();
       confidence += 0.15;
     }
 
     // Date extraction
-    const dateMatch = text.match(/\b(\d{1,2}[\/-]\d{1,2}[\/-]\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s*\d{0,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s*\d{4})\b/i);
+    const dateMatch = text.match(/\b(\d{1,2}[\/-]\d{1,2}[\/-]\d{4}|\d{4}-\d{2}-\d{2})\b/i);
     if (dateMatch) {
-      let rawDate = dateMatch[1].trim();
-      // If date lacks year, but we have a context (e.g. project plannedStartDate)
-      // We will handle normalization in the orchestration service, but we can return raw date here.
-      result.date = rawDate;
+      result.date = dateMatch[1].trim();
       confidence += 0.20;
     }
 
     // Activity extraction
-    let activityMatch = text.match(/(?:activity|task|package|work item)\s*[:=-]?\s*([^,|.\n]+?)(?:\s*[|;,]|\s*progress|\s*is|\s*has|\s*was|\s*at|\s*reached|\s*completed|\s*\d+%|$)/i);
+    let activityMatch = text.match(/(?:activity\s*code|activity\s*name|activity|task|package|work item)\s*[:=-]?\s*([^,|.\n]+?)(?:\s*[|;,]|\s*progress|\s*is|\s*has|\s*was|\s*at|\s*reached|\s*completed|\s*\d+%|$)/i);
     if (!activityMatch) {
       activityMatch = text.match(/\b([A-Z]\d{3,4}(?:\s+[^,|.\n]+?)?)(?:\s*[|;,]|\s*progress|\s*is|\s*has|\s*was|\s*at|\s*reached|\s*completed|\s*\d+%|$)/i);
     }
@@ -70,12 +95,14 @@ export class FallbackExtractionProvider implements ExtractionProvider {
     }
 
     if (activityMatch && activityMatch[1]) {
-      result.activity = activityMatch[1].trim();
-      confidence += 0.25;
+      const act = activityMatch[1].trim();
+      if (!/^\d+$/.test(act)) {
+        result.activity = act;
+        confidence += 0.25;
+      }
     }
 
     result.extractionConfidence = Math.min(confidence, 1.0);
-
     return result;
   }
 }

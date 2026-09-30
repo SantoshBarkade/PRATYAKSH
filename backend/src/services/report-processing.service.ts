@@ -1,11 +1,207 @@
 import { Project } from '../models/Project';
 import { ExecutionUpdate } from '../models/ExecutionUpdate';
 import { parsePdf } from '../parsers/pdf.parser';
-import { parseTxt } from '../parsers/text.parser';
+import { parseTxt, extractSignalsFromText } from '../parsers/text.parser';
 import { extractionService } from './extraction.service';
-import { SourceType } from '../types';
+import { matchingService } from './matching.service';
+import { reconciliationService } from './reconciliation.service';
+import { progressService } from './progress.service';
+import { riskService } from './risk.service';
+import { getLogicalDateString } from '../utils/date.utils';
+import { SourceType, ExecutionSignal } from '../types';
 
 export class ReportProcessingService {
+  /**
+   * Processes a multi-signal TXT site report or evidence document.
+   * Robust, deterministic, and supports natural text variants.
+   */
+  async processTxtReport(
+    projectId: string,
+    fileBuffer: Buffer | null,
+    directText: string | null,
+    fileName: string | null,
+    reportDateMetadata: string | null
+  ) {
+    const project = await Project.findById(projectId);
+    if (!project) {
+      const err = new Error('Project not found');
+      err.name = 'NotFoundError';
+      throw err;
+    }
+
+    let rawText = '';
+    if (fileBuffer) {
+      rawText = parseTxt(fileBuffer);
+    } else if (directText) {
+      rawText = directText.trim();
+    } else {
+      throw new Error('No TXT content provided');
+    }
+
+    // 1. Extract all structured execution signals
+    const { signals, extractionMethod } = await extractionService.extractSignals(rawText, {
+      sourceFileName: fileName,
+      projectId
+    });
+
+    if (signals.length === 0) {
+      return {
+        success: true,
+        importedRows: 0,
+        results: [],
+        result: {
+          events: [],
+          signalsCount: 0,
+          matchedActivities: 0,
+          unmatchedActivities: 0,
+          extractionMethod
+        },
+        warnings: ['No valid execution signals identified in document.']
+      };
+    }
+
+    const processedResults = [];
+    const matchedActivities: string[] = [];
+    const unmatchedActivities: string[] = [];
+
+    // 2. Process each execution signal
+    for (const signal of signals) {
+      // Date Normalization
+      let reportDate: Date | null = null;
+      let logicalDate: string | null = null;
+
+      const dateStr = signal.observationDate || reportDateMetadata;
+      if (dateStr) {
+        let dateObj = new Date(dateStr);
+        const projectYear = project.plannedStartDate.getUTCFullYear();
+        
+        if (!/\d{4}/.test(dateStr)) {
+          dateObj = new Date(`${dateStr} ${projectYear}`);
+        }
+        
+        if (!isNaN(dateObj.getTime())) {
+          reportDate = dateObj;
+          logicalDate = getLogicalDateString(dateObj);
+        }
+      }
+
+      // Persist initial ExecutionUpdate
+      const matchTarget = signal.activityCode || signal.activityName;
+      const update = new ExecutionUpdate({
+        projectId: project._id,
+        activityId: null,
+        sourceType: 'TXT',
+        sourceFileName: fileName || signal.source,
+        reportDate,
+        logicalDate,
+        rawText: signal.rawText || rawText,
+        extractedActivity: matchTarget,
+        progress: signal.actualProgress,
+        reason: signal.reason,
+        extractedStatus: signal.status,
+        extractionConfidence: signal.confidence ?? 1.0,
+        extractionMethod,
+        processingStatus: 'EXTRACTED'
+      });
+
+      await update.save();
+
+      let matchResult;
+      let progressUpdate;
+
+      // 3. Match against project schedule
+      if (matchTarget) {
+        matchResult = await matchingService.matchActivity(project._id.toString(), matchTarget);
+        
+        update.matchScore = matchResult.matchScore ?? null;
+        update.matchMethod = matchResult.matchMethod ?? null;
+        update.matchingDecision = matchResult.decision;
+
+        if (matchResult.decision === 'AUTO_MATCH' && matchResult.matchedActivityId) {
+          update.activityId = matchResult.matchedActivityId as any;
+          update.processingStatus = 'MATCHED';
+          await update.save();
+
+          matchedActivities.push(signal.activityCode || matchResult.matchedActivityCode || matchTarget);
+
+          // Reconcile multi-source evidence
+          const reconciliationResult = await reconciliationService.reconcile(update);
+
+          if (reconciliationResult.status === 'ALIGNED') {
+            // Apply trusted progress update
+            const result = await progressService.processExecutionUpdate(
+              matchResult.matchedActivityId,
+              update._id.toString()
+            );
+
+            if (result && result.activityUpdated) {
+              update.processingStatus = 'PROCESSED';
+              await update.save();
+              progressUpdate = result;
+
+              // Propagate delay and dependency risks
+              await riskService.propagateRisks(projectId);
+            } else {
+              update.processingStatus = 'PROCESSED';
+              await update.save();
+            }
+          }
+        } else {
+          // UNMATCHED or REVIEW_REQUIRED: Route to review queue, DO NOT mutate Activity
+          update.processingStatus = matchResult.decision === 'REVIEW_REQUIRED' ? 'REVIEW_REQUIRED' : 'UNMATCHED';
+          await update.save();
+          unmatchedActivities.push(signal.activityCode || matchTarget);
+        }
+      } else {
+        update.processingStatus = 'UNMATCHED';
+        update.matchingDecision = 'UNMATCHED';
+        await update.save();
+        unmatchedActivities.push('UNKNOWN');
+      }
+
+      processedResults.push({
+        executionUpdateId: update._id,
+        projectId: project._id,
+        activityCode: signal.activityCode,
+        activityName: signal.activityName,
+        actualProgress: signal.actualProgress,
+        processingStatus: update.processingStatus,
+        matchingDecision: update.matchingDecision,
+        matching: matchResult,
+        progress: progressUpdate ? {
+          actual: progressUpdate.actualProgress,
+          plannedAtReportDate: progressUpdate.plannedProgress,
+          variance: progressUpdate.variance
+        } : undefined,
+        activityStatus: progressUpdate ? progressUpdate.activityStatus : undefined
+      });
+    }
+
+    return {
+      success: true,
+      importedRows: processedResults.length,
+      results: processedResults,
+      result: {
+        events: processedResults,
+        signalsCount: processedResults.length,
+        matchedActivities: matchedActivities.length,
+        unmatchedActivities: unmatchedActivities.length,
+        matchedList: matchedActivities,
+        unmatchedList: unmatchedActivities,
+        extractionMethod
+      },
+      summary: {
+        totalSignals: processedResults.length,
+        matched: matchedActivities,
+        unmatched: unmatchedActivities,
+        extractionMethod
+      }
+    };
+  }
+
+  /**
+   * Backwards-compatible single-report processor (PDF / unstructured text).
+   */
   async processReport(
     projectId: string,
     sourceType: SourceType,
@@ -14,6 +210,10 @@ export class ReportProcessingService {
     fileName: string | null,
     reportDateMetadata: string | null
   ) {
+    if (sourceType === 'TXT') {
+      return this.processTxtReport(projectId, fileBuffer, directText, fileName, reportDateMetadata);
+    }
+
     // 1. Validate project
     const project = await Project.findById(projectId);
     if (!project) {
@@ -34,9 +234,6 @@ export class ReportProcessingService {
     } else if (sourceType === 'PDF') {
       if (!fileBuffer) throw new Error('PDF buffer missing');
       rawText = await parsePdf(fileBuffer);
-    } else if (sourceType === 'TXT') {
-      if (!fileBuffer) throw new Error('TXT buffer missing');
-      rawText = parseTxt(fileBuffer);
     } else {
       throw new Error(`Unsupported source type: ${sourceType}`);
     }
@@ -52,31 +249,26 @@ export class ReportProcessingService {
       // Date Normalization
       if (extraction.date) {
         let dateObj = new Date(extraction.date);
-        
         const projectYear = project.plannedStartDate.getUTCFullYear();
         
-        // If the string doesn't contain a 4 digit year, we append the project year.
         if (!/\d{4}/.test(extraction.date)) {
-           dateObj = new Date(`${extraction.date} ${projectYear}`);
+          dateObj = new Date(`${extraction.date} ${projectYear}`);
         }
         
         if (isNaN(dateObj.getTime())) {
-          // If we have reportDateMetadata, use it, else null
           extraction.date = reportDateMetadata ? new Date(reportDateMetadata).toISOString() : null;
         } else {
-           extraction.date = dateObj.toISOString();
+          extraction.date = dateObj.toISOString();
         }
       } else if (reportDateMetadata) {
         extraction.date = new Date(reportDateMetadata).toISOString();
       }
 
-      // Validation
       if (extraction.progress !== null) {
         if (extraction.progress < 0 || extraction.progress > 100) {
-          extraction.progress = null; // invalid progress ignored instead of crashing
+          extraction.progress = null;
         }
       }
-
     } catch (err: any) {
       processingStatus = 'FAILED';
       processingError = err.message || 'Unknown extraction error';
@@ -91,13 +283,14 @@ export class ReportProcessingService {
       };
     }
 
-    // 4. Save initial ExecutionUpdate (so we have an ID and record of the report)
+    // 4. Save initial ExecutionUpdate
     const update = new ExecutionUpdate({
       projectId: project._id,
       activityId: null,
       sourceType,
       sourceFileName: fileName,
       reportDate: extraction.date ? new Date(extraction.date) : (reportDateMetadata ? new Date(reportDateMetadata) : null),
+      logicalDate: extraction.date ? getLogicalDateString(new Date(extraction.date)) : (reportDateMetadata ? getLogicalDateString(new Date(reportDateMetadata)) : null),
       rawText,
       extractedActivity: extraction.activity,
       progress: extraction.progress,
@@ -105,7 +298,7 @@ export class ReportProcessingService {
       extractedStatus: extraction.status,
       extractionConfidence: extraction.extractionConfidence,
       extractionMethod: extraction.extractionMethod,
-      processingStatus: processingStatus, // Start with EXTRACTED or FAILED
+      processingStatus,
       processingError
     });
     
@@ -115,8 +308,7 @@ export class ReportProcessingService {
     let progressUpdate;
 
     if (processingStatus === 'EXTRACTED' && extraction.activity) {
-      // 5. Match Activity
-      matchResult = await require('./matching.service').matchingService.matchActivity(project._id.toString(), extraction.activity);
+      matchResult = await matchingService.matchActivity(project._id.toString(), extraction.activity);
       
       update.matchScore = matchResult.matchScore ?? null;
       update.matchMethod = matchResult.matchMethod ?? null;
@@ -127,22 +319,18 @@ export class ReportProcessingService {
         update.processingStatus = 'MATCHED';
         await update.save();
         
-        const reconciliationResult = await require('./reconciliation.service').reconciliationService.reconcile(update);
+        const reconciliationResult = await reconciliationService.reconcile(update);
         
         if (reconciliationResult.status === 'ALIGNED') {
-          // 6. Process Progress
-          const result = await require('./progress.service').progressService.processExecutionUpdate(matchResult.matchedActivityId, update._id.toString());
+          const result = await progressService.processExecutionUpdate(matchResult.matchedActivityId, update._id.toString());
           if (result && result.activityUpdated) {
-             update.processingStatus = 'PROCESSED';
-             await update.save();
-             progressUpdate = result;
-             
-             // 7. M3 -> M4 Integration (Risk Propagation)
-             await require('./risk.service').riskService.propagateRisks(projectId);
+            update.processingStatus = 'PROCESSED';
+            await update.save();
+            progressUpdate = result;
+            await riskService.propagateRisks(projectId);
           } else if (result && !result.activityUpdated) {
-             // Out of order or ignored report
-             update.processingStatus = 'PROCESSED';
-             await update.save();
+            update.processingStatus = 'PROCESSED';
+            await update.save();
           }
         }
       } else if (matchResult.decision === 'REVIEW_REQUIRED' || matchResult.decision === 'UNMATCHED') {
@@ -155,8 +343,8 @@ export class ReportProcessingService {
       await update.save();
     }
 
-    return {
-      reportId: update._id,
+    const singleEvent = {
+      executionUpdateId: update._id,
       projectId: project._id,
       sourceType,
       processingStatus: update.processingStatus,
@@ -165,11 +353,22 @@ export class ReportProcessingService {
       extractionMethod: extraction.extractionMethod,
       matching: matchResult,
       progress: progressUpdate ? {
-         actual: progressUpdate.actualProgress,
-         plannedAtReportDate: progressUpdate.plannedProgress,
-         variance: progressUpdate.variance
+        actual: progressUpdate.actualProgress,
+        plannedAtReportDate: progressUpdate.plannedProgress,
+        variance: progressUpdate.variance
       } : undefined,
       activityStatus: progressUpdate ? progressUpdate.activityStatus : undefined
+    };
+
+    return {
+      success: true,
+      importedRows: 1,
+      results: [singleEvent],
+      result: {
+        events: [singleEvent],
+        signalsCount: 1,
+        ...singleEvent
+      }
     };
   }
 }
