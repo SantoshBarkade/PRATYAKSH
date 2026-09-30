@@ -1,0 +1,40 @@
+PROJECT: Municipal Water Pipeline Upgrade — Zone 4
+DOCUMENT TYPE: Historical Progress Snapshot
+OBSERVATION DATE: 2026-04-10
+SOURCE: Project Progress Register
+
+Activity Code: W001
+Activity Name: Utility Survey & Marking
+Actual Progress: 60%
+Status: IN_PROGRESS
+Observation Date: 2026-04-10
+
+Activity Code: W002
+Activity Name: Trench Excavation
+Actual Progress: 38%
+Status: IN_PROGRESS
+Observation Date: 2026-04-10
+
+Activity Code: W003
+Activity Name: DI Pipeline Laying
+Actual Progress: 12%
+Status: IN_PROGRESS
+Observation Date: 2026-04-10
+
+Activity Code: W004
+Activity Name: Valve Chamber Construction
+Actual Progress: 0%
+Status: NOT_STARTED
+Observation Date: 2026-04-10
+
+Activity Code: W005
+Activity Name: Service Connection Transfer
+Actual Progress: 0%
+Status: NOT_STARTED
+Observation Date: 2026-04-10
+
+Activity Code: W006
+Activity Name: Pressure Testing & Commissioning
+Actual Progress: 0%
+Status: NOT_STARTED
+Observation Date: 2026-04-10

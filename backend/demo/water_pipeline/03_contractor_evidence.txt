@@ -1,0 +1,18 @@
+PROJECT: Municipal Water Pipeline Upgrade — Zone 4
+DOCUMENT TYPE: Contractor Execution Evidence
+SOURCE: Main Contractor Daily Measurement Register
+OBSERVATION DATE: 2026-06-11
+
+Activity Code: W001
+Activity Name: Utility Survey & Marking
+Actual Progress: 96%
+Status: VERIFIED
+Observation Date: 2026-06-11
+Reason: Contractor measurement confirms that utility survey and marking are nearly complete.
+
+Activity Code: W002
+Activity Name: Trench Excavation
+Actual Progress: 74%
+Status: VERIFIED
+Observation Date: 2026-06-11
+Reason: Contractor measurement register confirms current excavation quantities across active sections.

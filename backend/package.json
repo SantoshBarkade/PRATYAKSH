@@ -15,6 +15,7 @@
     "demo:verify": "ts-node --project tsconfig.scripts.json scripts/verify-demo-state.ts",
     "test:txt": "ts-node --project tsconfig.scripts.json scripts/test-txt-extraction.ts",
     "test:evidence": "ts-node --project tsconfig.scripts.json scripts/test-evidence-endpoint.ts",
+    "test:reconciliation": "ts-node --project tsconfig.scripts.json scripts/test-reconciliation-flow.ts",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {

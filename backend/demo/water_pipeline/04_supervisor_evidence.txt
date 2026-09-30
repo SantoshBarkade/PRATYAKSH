@@ -1,0 +1,18 @@
+PROJECT: Municipal Water Pipeline Upgrade — Zone 4
+DOCUMENT TYPE: Supervisor Verification Evidence
+SOURCE: Supervising Engineer Field Verification
+OBSERVATION DATE: 2026-06-12
+
+Activity Code: W001
+Activity Name: Utility Survey & Marking
+Actual Progress: 95%
+Status: VERIFIED
+Observation Date: 2026-06-12
+Reason: Supervisor field inspection confirms progress with one remaining verification area.
+
+Activity Code: W002
+Activity Name: Trench Excavation
+Actual Progress: 75%
+Status: VERIFIED
+Observation Date: 2026-06-12
+Reason: Supervisor inspection confirms current execution and records a slightly different measured quantity from the contractor register.

@@ -7,22 +7,70 @@ import { ConflictDetail } from '../types';
 
 export class ReconciliationService {
   /**
-   * Reconciles an incoming evidence update against existing evidence for the same activity and date.
+   * Reconciles an incoming evidence update against existing evidence for the same activity.
+   * Dynamically groups multi-source observations within the active reporting cycle.
    * Modifies the incoming update's status in memory. You must .save() it afterwards.
    */
   async reconcile(incoming: IExecutionUpdate): Promise<{ status: 'ALIGNED' | 'CONFLICT'; reconciliationId?: Types.ObjectId }> {
-    if (!incoming.activityId || !incoming.logicalDate) {
+    if (!incoming.activityId) {
       return { status: 'ALIGNED' };
     }
 
-    // Find other evidence for the same activity on the same logical date
-    const existingEvidence = await ExecutionUpdate.find({
+    // Determine normalized observation date for incoming update
+    const incomingDateStr = incoming.logicalDate || (incoming.reportDate ? incoming.reportDate.toISOString().split('T')[0] : null);
+    const incomingTime = incoming.reportDate
+      ? incoming.reportDate.getTime()
+      : (incomingDateStr ? new Date(incomingDateStr).getTime() : null);
+
+    // Find all valid candidate evidence records for the same project and activity
+    const candidates = await ExecutionUpdate.find({
       projectId: incoming.projectId,
       activityId: incoming.activityId,
-      logicalDate: incoming.logicalDate,
       _id: { $ne: incoming._id },
-      // don't reconcile against discarded/failed evidence
       processingStatus: { $in: ['MATCHED', 'PROCESSED', 'CONFLICT_REVIEW_REQUIRED'] }
+    });
+
+    if (candidates.length === 0) {
+      return { status: 'ALIGNED' };
+    }
+
+    // Check for an existing open conflict record for this activity
+    const activeRec = await Reconciliation.findOne({
+      projectId: incoming.projectId,
+      activityId: incoming.activityId,
+      status: 'CONFLICT'
+    });
+
+    const activeRecEvidenceIds = new Set(
+      activeRec ? activeRec.evidenceIds.map(id => id.toString()) : []
+    );
+
+    // Reporting cycle proximity: evidence within 14 days belongs to the same reporting/observation cycle
+    const CYCLE_WINDOW_DAYS = 14;
+    const existingEvidence = candidates.filter(e => {
+      // Always include if already part of an active unresolved conflict
+      if (activeRecEvidenceIds.has(e._id.toString())) {
+        return true;
+      }
+
+      const eDateStr = e.logicalDate || (e.reportDate ? e.reportDate.toISOString().split('T')[0] : null);
+      const eTime = e.reportDate
+        ? e.reportDate.getTime()
+        : (eDateStr ? new Date(eDateStr).getTime() : null);
+
+      if (incomingTime !== null && !isNaN(incomingTime) && eTime !== null && !isNaN(eTime)) {
+        const diffDays = Math.abs(incomingTime - eTime) / (1000 * 60 * 60 * 24);
+        return diffDays <= CYCLE_WINDOW_DAYS;
+      }
+
+      // If one or both lack dates, check record creation time proximity (14 days)
+      const eCreatedTime = e.createdAt ? new Date(e.createdAt).getTime() : null;
+      const incomingCreatedTime = incoming.createdAt ? new Date(incoming.createdAt).getTime() : Date.now();
+      if (eCreatedTime && Math.abs(incomingCreatedTime - eCreatedTime) / (1000 * 60 * 60 * 24) <= CYCLE_WINDOW_DAYS) {
+        return true;
+      }
+
+      return true;
     });
 
     if (existingEvidence.length === 0) {
@@ -31,10 +79,10 @@ export class ReconciliationService {
 
     const conflicts: ConflictDetail[] = [];
 
-    // Compare progress (Tolerance: 5 percentage points)
+    // Compare progress (Any numerical discrepancy between distinct evidence streams constitutes an audit conflict)
     if (typeof incoming.progress === 'number') {
       const conflictingProgress = existingEvidence.filter(e => 
-        typeof e.progress === 'number' && Math.abs(e.progress - (incoming.progress as number)) > 5
+        typeof e.progress === 'number' && Math.abs(e.progress - (incoming.progress as number)) > 0
       );
       if (conflictingProgress.length > 0) {
         conflicts.push({
@@ -45,17 +93,24 @@ export class ReconciliationService {
           ]
         });
       }
-    } else {
-      // If incoming has no progress but others do, it's not strictly a conflict unless it contradicts.
-      // We will skip strict conflict on null progress for now.
     }
 
-    // Compare status
+    // Compare status (Direct contradictions e.g. COMPLETED vs IN_PROGRESS/DELAYED/NOT_STARTED)
     if (incoming.extractedStatus) {
       const incomingNormalized = incoming.extractedStatus.toUpperCase().trim();
-      const conflictingStatus = existingEvidence.filter(e => 
-        e.extractedStatus && e.extractedStatus.toUpperCase().trim() !== incomingNormalized
-      );
+      const conflictingStatus = existingEvidence.filter(e => {
+        if (!e.extractedStatus) return false;
+        const eNorm = e.extractedStatus.toUpperCase().trim();
+        if (eNorm === incomingNormalized) return false;
+
+        // VERIFIED is an audit state compatible with IN_PROGRESS / ON_TRACK
+        const isProgressA = ['IN_PROGRESS', 'ON_TRACK', 'VERIFIED'].includes(incomingNormalized) &&
+                            ['IN_PROGRESS', 'ON_TRACK', 'VERIFIED'].includes(eNorm);
+        if (isProgressA) return false;
+
+        return true;
+      });
+
       if (conflictingStatus.length > 0) {
         conflicts.push({
           field: 'status',
@@ -71,57 +126,72 @@ export class ReconciliationService {
       incoming.processingStatus = 'CONFLICT_REVIEW_REQUIRED';
       await incoming.save();
 
-      const allEvidenceIds = [incoming._id, ...existingEvidence.map(e => e._id)];
-      
-      // Upsert reconciliation record for this activity + date
-      // Try to find an unresolved reconciliation for this activity to group them
-      // Alternatively, just create a new one. Since multiple conflicts can arise, 
-      // let's group by activity and date. We don't have a reportDate on Reconciliation, 
-      // but we can query by existing unresolved conflict for this activity.
-      let rec = await Reconciliation.findOne({
-        projectId: incoming.projectId,
-        activityId: incoming.activityId,
-        logicalDate: incoming.logicalDate,
-        status: 'CONFLICT'
-      });
+      // Collect all evidence IDs genuinely involved in the conflict
+      const involvedEvidenceIdStrings = new Set<string>();
+      involvedEvidenceIdStrings.add(incoming._id.toString());
+      for (const c of conflicts) {
+        for (const v of c.values) {
+          involvedEvidenceIdStrings.add(v.evidenceId.toString());
+        }
+      }
+
+      // Upsert reconciliation record for this activity
+      let rec = activeRec;
+      if (!rec) {
+        rec = await Reconciliation.findOne({
+          projectId: incoming.projectId,
+          activityId: incoming.activityId,
+          status: 'CONFLICT'
+        });
+      }
+
+      const effectiveLogicalDate = incoming.logicalDate ||
+        (incoming.reportDate ? incoming.reportDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
 
       if (!rec) {
         rec = new Reconciliation({
           projectId: incoming.projectId,
           activityId: incoming.activityId,
-          logicalDate: incoming.logicalDate,
+          logicalDate: effectiveLogicalDate,
           status: 'CONFLICT',
-          evidenceIds: allEvidenceIds,
+          evidenceIds: Array.from(involvedEvidenceIdStrings).map(id => new Types.ObjectId(id)),
           conflicts
         });
       } else {
-        // Append new evidence and conflicts
-        allEvidenceIds.forEach(id => {
-          if (!rec!.evidenceIds.includes(id)) {
-             rec!.evidenceIds.push(id);
+        if (incoming.logicalDate) {
+          rec.logicalDate = incoming.logicalDate;
+        }
+
+        // Append new evidence IDs without duplicates
+        for (const idStr of involvedEvidenceIdStrings) {
+          if (!rec.evidenceIds.some(existingId => existingId.toString() === idStr)) {
+            rec.evidenceIds.push(new Types.ObjectId(idStr));
           }
-        });
-        
-        // Simplistic conflict merge (in reality, we might want to merge fields carefully)
+        }
+
+        // Merge conflicts by field
         for (const c of conflicts) {
           const existingConflict = rec.conflicts.find(x => x.field === c.field);
           if (existingConflict) {
-             c.values.forEach(v => {
-                if (!existingConflict.values.find(ev => ev.evidenceId.toString() === v.evidenceId.toString())) {
-                   existingConflict.values.push(v);
-                }
-             });
+            for (const v of c.values) {
+              const exists = existingConflict.values.some(
+                ev => ev.evidenceId.toString() === v.evidenceId.toString()
+              );
+              if (!exists) {
+                existingConflict.values.push(v);
+              }
+            }
           } else {
-             rec.conflicts.push(c);
+            rec.conflicts.push(c);
           }
         }
       }
-      
+
       await rec.save();
 
-      // Mark other conflicting evidence as CONFLICT_REVIEW_REQUIRED if not already
+      // Mark all conflicting evidence as CONFLICT_REVIEW_REQUIRED
       for (const e of existingEvidence) {
-        if (e.processingStatus !== 'CONFLICT_REVIEW_REQUIRED') {
+        if (involvedEvidenceIdStrings.has(e._id.toString()) && e.processingStatus !== 'CONFLICT_REVIEW_REQUIRED') {
           e.processingStatus = 'CONFLICT_REVIEW_REQUIRED';
           await e.save();
         }

@@ -1,0 +1,17 @@
+PROJECT: Municipal Water Pipeline Upgrade — Zone 4
+DOCUMENT TYPE: Field Exception Memo
+SOURCE: Emergency Field Team
+OBSERVATION DATE: 2026-06-12
+
+ACTIVITY CODE: EMERGENCY-WATER-01
+ACTIVITY NAME: Emergency Water Main Leak Isolation
+ACTUAL PROGRESS: 20%
+STATUS: IN_PROGRESS
+OBSERVATION DATE: 2026-06-12
+REASON: An unexpected leak was isolated near the Zone 4 work front. The emergency response activity is not part of the current approved baseline schedule.
+
+EXPECTED SYSTEM BEHAVIOUR:
+- Extract one execution signal.
+- Do not match it to W001–W006.
+- Route it to the Review Queue.
+- Do not modify any scheduled activity.

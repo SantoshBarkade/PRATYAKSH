@@ -1,0 +1,28 @@
+{
+  "project": "Municipal Water Pipeline Upgrade \u2014 Zone 4",
+  "files": [
+    "00_MASTER_FLOW_README.txt",
+    "01_schedule.xlsx",
+    "02_site_report.txt",
+    "03_contractor_evidence.txt",
+    "04_supervisor_evidence.txt",
+    "05_unknown_field_memo.txt",
+    "06_progress_history_01.txt",
+    "07_progress_history_02.txt",
+    "08_progress_history_03.txt",
+    "09_progress_history_04.txt"
+  ],
+  "expected_reconciliation": {
+    "W001": {
+      "contractor": 96,
+      "supervisor": 95,
+      "difference_pp": 1
+    },
+    "W002": {
+      "contractor": 74,
+      "supervisor": 75,
+      "difference_pp": 1
+    }
+  },
+  "expected_unmatched": "EMERGENCY-WATER-01"
+}

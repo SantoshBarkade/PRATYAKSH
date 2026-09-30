@@ -1,0 +1,59 @@
+PROJECT: Municipal Water Pipeline Upgrade — Zone 4
+DOCUMENT TYPE: Site Progress Report
+PROJECT CODE: MWP-Z4
+OBSERVATION DATE: 2026-06-10
+SOURCE: Site Execution Report
+
+ACTIVITY 1
+----------
+Activity Code: W001
+Activity Name: Utility Survey & Marking
+Actual Progress: 94%
+Status: IN_PROGRESS
+Observation Date: 2026-06-10
+Reason: Survey and utility marking are substantially complete; final verification points remain.
+
+ACTIVITY 2
+----------
+Activity Code: W002
+Activity Name: Trench Excavation
+Actual Progress: 75%
+Status: IN_PROGRESS
+Observation Date: 2026-06-10
+Reason: Excavation is progressing across the active work fronts with some sections still open.
+
+ACTIVITY 3
+----------
+Activity Code: W003
+Activity Name: DI Pipeline Laying
+Actual Progress: 58%
+Status: IN_PROGRESS
+Observation Date: 2026-06-10
+Reason: Pipeline laying is active on the released trench sections.
+
+ACTIVITY 4
+----------
+Activity Code: W004
+Activity Name: Valve Chamber Construction
+Actual Progress: 32%
+Status: DELAYED
+Observation Date: 2026-06-10
+Reason: Chamber construction is behind the baseline because excavation release was slower than planned.
+
+ACTIVITY 5
+----------
+Activity Code: W005
+Activity Name: Service Connection Transfer
+Actual Progress: 20%
+Status: DELAYED
+Observation Date: 2026-06-10
+Reason: Connection transfer work has started but remains dependent on available completed pipeline sections.
+
+ACTIVITY 6
+----------
+Activity Code: W006
+Activity Name: Pressure Testing & Commissioning
+Actual Progress: 8%
+Status: IN_PROGRESS
+Observation Date: 2026-06-10
+Reason: Initial preparation has started; full testing awaits completion of upstream works.
